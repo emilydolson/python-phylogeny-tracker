@@ -25,19 +25,21 @@ namespace pybind11 { namespace detail {
     };
 }}
 
-// namespace emp {
-//     namespace datastruct {
-//         struct python {
-//             // using phen_t = py::object;
-//             using has_phen_t = std::false_type;
-//             using has_mutations_t = std::false_type;
-//             using has_fitness_t = std::false_type;
+namespace emp {
+    namespace datastruct {
+        struct python {
+            // using phen_t = py::object;
+            using has_phen_t = std::false_type;
+            using has_mutations_t = std::false_type;
+            using has_fitness_t = std::false_type;
 
-//             py::object data;
+            py::object data = py::none();
+            void SetData(py::object d) {data = d;}
+            py::object GetData() {return data;}
 
-//         };
-//     }
-// }
+        };
+    }
+}
 
 /// Returns url encoding of value, but preserving [, ], {, }, ", and '
 std::string partial_url_encode(const std::string &value)
@@ -172,17 +174,19 @@ class taxon_info : public py::object {
 
 using taxon_info_t = taxon_info;
 using org_t = py::object;
-using sys_t = emp::Systematics<org_t, taxon_info_t>;
-using taxon_t = emp::Taxon<taxon_info_t>;
+using data_t = emp::datastruct::python;
+using sys_t = emp::Systematics<org_t, taxon_info_t, data_t>;
+using taxon_t = emp::Taxon<taxon_info_t, data_t>;
 using taxon_ptr = emp::Ptr<taxon_t>;
 
 
 PYBIND11_MODULE(systematics, m) {
-    // py::class_<emp::datastruct::python>(m, "DataStruct")
-    //     .def("set_data", [](emp::datastruct::python & self, py::object & d){self.data = d;})
-    //     .def("get_data", [](emp::datastruct::python & self, py::object & d){return self.data;}, py::return_value_policy::reference_internal)
-    //     .def_readwrite("data", &emp::datastruct::python::data)
-    //     ;
+    py::class_<emp::datastruct::python>(m, "DataStruct")
+        .def(py::init<>())
+        .def("set_data", &emp::datastruct::python::SetData)
+        .def("get_data", &emp::datastruct::python::GetData, py::return_value_policy::reference_internal)
+        // .def_readwrite("data", &emp::datastruct::python::data)
+        ;
 
     m.def("encode_taxon", &encode_taxon, R"mydelimiter(
         Encode a Python object as a string that streams as a single token and can be deserialized using `eval`.
@@ -257,8 +261,8 @@ PYBIND11_MODULE(systematics, m) {
             Return the time (as a float) when this taxon first appeared in the population.
             This call will only succeed when the systematics manager has been set to track times via `set_update()`.
         )mydelimiter")
-        // .def("set_data", &taxon_t::SetData)
-        // .def("get_data", [](taxon_t & self){return self.GetData();})
+        .def("set_data", &taxon_t::SetData)
+        .def("get_data", [](taxon_t & self){return self.GetData();}, py::return_value_policy::reference_internal)
         ;
 
     py::class_<sys_t>(m, "Systematics")

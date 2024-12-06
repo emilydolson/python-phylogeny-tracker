@@ -431,12 +431,22 @@ def test_taxon():
     assert tax.get_info() == "hello"
 
 
-# def test_data():
-#     sys = systematics.Systematics(taxon_info_fun, True, True, False, False)
-#     org = ExampleOrg("hello")
-#     org_tax = sys.add_org(org)
-#     org_tax.get_data().set_data({"val":4, "test": 9})
-#     assert(org_tax.get_data().data["val"] == 4)
+def test_data():
+    sys = systematics.Systematics(taxon_info_fun, True, True, False, False)
+    org = ExampleOrg("hello")
+    org_tax = sys.add_org(org)
+    # org_tax.set_data(systematics.DataStruct())
+    d = systematics.DataStruct()
+    d.set_data({"val": 4, "test": 9})
+    # print(d)
+    # print(org_tax.get_data().get_data())
+    org_tax.set_data(d)
+    org_tax.get_data().get_data()["test"] = 5
+    # org_tax.get_data().set_data({"val": 4, "test": 9})
+    # print(org_tax.get_data().get_data())
+    # data["val"] = 4
+    assert org_tax.get_data().get_data()["val"] == 4 
+    assert org_tax.get_data().get_data()["test"] == 5 
 
 
 
